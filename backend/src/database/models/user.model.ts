@@ -12,8 +12,6 @@ export interface UserDocument extends Document {
   email: string;
   password: string;
   isEmailVerified: boolean;
-  enable2FA: boolean;
-  twoFactorSecret?: string;
   createdAt: Date;
   updatedAt: Date;
   userPreferences: UserPreferences;
@@ -67,6 +65,7 @@ userSchema.set("toJSON", {
   transform: function (doc, ret) {
     // Omit password field from the returned object
     delete ret.password;
+    delete ret.userPreferences.twoFactorSecret;
     return ret;
   },
 });

@@ -77,13 +77,11 @@ class AuthService {
     if (error) {
       console.log(error);
     }
-
     //create session valid for 7day
     const session = await SessionModel.create({
       userId,
       userAgent,
     });
-
     //sign access token & refresh token
     const accessToken = signJwtToken({
       userId,
@@ -94,7 +92,6 @@ class AuthService {
       { sessionId: session._id },
       refreshTokenSignOptions
     );
-
     // const refreshToken = jwt.sign(
     //   { sessionId: session._id },
     //   config.JWT.REFRESH_SECRET,
@@ -132,13 +129,21 @@ class AuthService {
       );
     }
 
+    if (user.userPreferences.enable2FA) {
+      return {
+        user: null,
+        mfaRequired: true,
+        accessToken: "",
+        refreshToken: "",
+      };
+    }
+
     const session = await SessionModel.create({
       userId: user._id,
       userAgent,
     });
 
     //sign access token & refresh token
-
     const accessToken = signJwtToken({
       userId: user._id,
       sessionId: session._id,
@@ -148,15 +153,6 @@ class AuthService {
       { sessionId: session._id },
       refreshTokenSignOptions
     );
-
-    //  const refreshToken = jwt.sign(
-    //    { sessionId: session._id },
-    //    config.JWT.REFRESH_SECRET,
-    //    {
-    //      audience: ["user"],
-    //      expiresIn: config.JWT.REFRESH_EXPIRES_IN, //expires in 3odays
-    //    }
-    //  );
 
     return {
       user,

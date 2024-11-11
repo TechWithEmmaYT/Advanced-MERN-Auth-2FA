@@ -48,14 +48,21 @@ class AuthController {
         ...req.body,
         userAgent: req.headers["user-agent"],
       });
-      const { accessToken, refreshToken, user } = await this.authService.login(
-        body
-      );
+      const { accessToken, refreshToken, user, mfaRequired } =
+        await this.authService.login(body);
 
+      if (mfaRequired) {
+        return res.status(HTTPSTATUS.OK).json({
+          message: "Verify MFA authentication",
+          mfaRequired: true,
+          user,
+        });
+      }
       return setAuthenticationCookies({ res, accessToken, refreshToken })
         .status(HTTPSTATUS.OK)
         .json({
           message: "User login successfully",
+          mfaRequired: false,
           user,
         });
     }

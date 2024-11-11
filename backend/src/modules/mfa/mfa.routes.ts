@@ -1,6 +1,11 @@
 import { Router } from "express";
+import { mfaController } from "./mfa.controller";
+import { authenticateJWT } from "../../common/strategies/jwt.strategy";
 
 const mfaRoutes = Router();
-//mfaRoutes.get("/current-user", userController.getCurrentUser);
+mfaRoutes.get("/setup", authenticateJWT, mfaController.generateMFASetup);
+mfaRoutes.post("/verify", authenticateJWT, mfaController.verifyMFASetup);
+
+mfaRoutes.post("/verify-login", mfaController.verifyMFAForLogin);
 
 export default mfaRoutes;
