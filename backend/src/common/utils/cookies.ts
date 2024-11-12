@@ -12,8 +12,9 @@ export const REFRESH_PATH = `${config.BASE_PATH}/auth/refresh`;
 
 const defaults: CookieOptions = {
   httpOnly: true, // Makes the cookie inaccessible to JavaScript
-  secure: config.NODE_ENV === "production", // Ensures cookies are sent over HTTPS only in production
-  sameSite: "strict", // CSRF protection
+  secure: config.NODE_ENV === "production" ? true : false, // Ensures cookies are sent over HTTPS only in production
+  sameSite: "none", // CSRF protection
+  domain: "localhost",
 };
 
 export const getRefreshTokenCookieOptions = (): CookieOptions => {

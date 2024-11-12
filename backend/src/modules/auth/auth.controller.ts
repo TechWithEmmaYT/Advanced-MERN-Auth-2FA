@@ -71,7 +71,6 @@ class AuthController {
   public refreshToken = asyncHandler(
     async (req: Request, res: Response): Promise<any> => {
       const refreshToken = req.cookies.refreshToken as string | undefined;
-      console.log(req.cookies, "req.cookies");
       if (!refreshToken) {
         throw new UnauthorizedException("Missing refresh token");
       }

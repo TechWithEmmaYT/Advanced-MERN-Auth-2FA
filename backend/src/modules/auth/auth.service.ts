@@ -68,15 +68,16 @@ class AuthService {
       expiresAt: fortyFiveMinutesFromNow(),
     });
     //send verification email
-    const verificationUrl = `${config.APP_ORIGIN}/verify/email/${code._id}`;
-    const { error } = await sendEmail({
-      to: newUser.email,
-      ...verifyEmailTemplate(verificationUrl),
-    });
-
-    if (error) {
-      console.log(error);
+    try {
+      const verificationUrl = `${config.APP_ORIGIN}/verify/email/${code._id}`;
+      await sendEmail({
+        to: newUser.email,
+        ...verifyEmailTemplate(verificationUrl),
+      });
+    } catch (err) {
+      console.log(err);
     }
+
     //create session valid for 7day
     const session = await SessionModel.create({
       userId,
@@ -114,18 +115,18 @@ class AuthService {
       email: email,
     });
     if (!user) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         "Invalid email or password provided",
-        ErrorCode.ACCESS_UNAUTHORIZED
+        ErrorCode.AUTH_USER_NOT_FOUND
       );
     }
 
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         "Invalid email or password provided",
-        ErrorCode.ACCESS_UNAUTHORIZED
+        ErrorCode.AUTH_USER_NOT_FOUND
       );
     }
 
@@ -161,14 +162,35 @@ class AuthService {
     };
   }
 
-  public async findUserById(userId: string) {
-    const user = await UserModel.findById(userId, {
-      password: false,
+  public async verifyEmail(code: string): Promise<any> {
+    const validCode = await VerificationCodeModel.findOne({
+      _id: code,
+      type: VerificationEnum.EMAIL_VERIFICATION,
+      expiresAt: { $gt: new Date() },
     });
-    if (!user) {
-      throw new NotFoundException("User not found");
+
+    if (!validCode) {
+      throw new NotFoundException("Invalid verification code");
     }
-    return user;
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      validCode.userId,
+      {
+        isEmailVerified: true,
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new BadRequestException(
+        "Unable to verify email address",
+        ErrorCode.VALIDATION_ERROR
+      );
+    }
+    await validCode.deleteOne();
+
+    return {
+      user: updatedUser,
+    };
   }
 
   public async refreshToken(refreshToken: string): Promise<any> {
@@ -217,37 +239,6 @@ class AuthService {
     return {
       accessToken,
       newRefreshToken,
-    };
-  }
-
-  public async verifyEmail(code: string): Promise<any> {
-    const validCode = await VerificationCodeModel.findOne({
-      _id: code,
-      type: VerificationEnum.EMAIL_VERIFICATION,
-      expiresAt: { $gt: new Date() },
-    });
-
-    if (!validCode) {
-      throw new NotFoundException("Invalid verification code");
-    }
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      validCode.userId,
-      {
-        isEmailVerified: true,
-      },
-      { new: true }
-    );
-
-    if (!updatedUser) {
-      throw new BadRequestException(
-        "Unable to verify email address",
-        ErrorCode.VALIDATION_ERROR
-      );
-    }
-    await validCode.deleteOne();
-
-    return {
-      user: updatedUser,
     };
   }
 

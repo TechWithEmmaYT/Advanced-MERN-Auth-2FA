@@ -9,7 +9,6 @@ import { asyncHandler } from "./middlewares/asyncHandler";
 import { HTTPSTATUS } from "./config/http.config";
 import authRoutes from "./modules/auth/auth.routes";
 import userRoutes from "./modules/user/user.routes";
-
 import passport from "./middlewares/passport";
 import sessionRoutes from "./modules/session/session.routes";
 import { authenticateJWT } from "./common/strategies/jwt.strategy";
@@ -26,6 +25,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(cookieParser());
 app.use(passport.initialize());
 

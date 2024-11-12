@@ -2,11 +2,10 @@ import passport, { PassportStatic } from "passport";
 import {
   Strategy as JwtStrategy,
   ExtractJwt,
-  //StrategyOptions,
   StrategyOptionsWithRequest,
 } from "passport-jwt";
 import { config } from "../../config/app.config";
-import AuthService from "../../modules/auth/auth.service";
+import UserService from "../../modules/user/user.service";
 import { UnauthorizedException } from "../utils/catch-errors";
 
 interface JwtPayload {
@@ -28,8 +27,8 @@ export const setupJwtStrategy = (passport: PassportStatic) => {
   passport.use(
     new JwtStrategy(options, async (req, payload: JwtPayload, done) => {
       try {
-        const authService = new AuthService();
-        const user = await authService.findUserById(payload.userId);
+        const userService = new UserService();
+        const user = await userService.findUserById(payload.userId);
 
         req.sessionId = payload.sessionId;
         return done(null, user);
