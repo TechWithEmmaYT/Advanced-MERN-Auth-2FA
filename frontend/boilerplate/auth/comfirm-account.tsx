@@ -1,12 +1,12 @@
+import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
 export default function ComfirmAccount() {
   return (
     <main className="w-full min-h-[590px] h-full max-w-full flex items-center justify-center ">
-      <div className="w-full h-full p-5 rounded-md border shadow">
-        <div className="size-[40px] rounded-lg  flex items-center border-2 dark:border-gray-200 justify-center  bg-gradient-to-br from-gray-500 to-black to-90% ">
-          <div className="font-bold text-gray-50 text-2xl">S</div>
-        </div>
+      <div className="w-full h-full p-5 rounded-md">
+        <Logo />
+
         <h1
           className="text-xl tracking-[-0.16px] dark:text-[#fcfdffef] font-bold mb-4 mt-8
         text-center sm:text-left"

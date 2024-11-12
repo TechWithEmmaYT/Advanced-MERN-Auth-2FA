@@ -44,7 +44,7 @@ const EnableMfa = () => {
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {}
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {};
 
   return (
     <div className="via-root to-root rounded-xl bg-gradient-to-r p-0.5">
@@ -63,9 +63,9 @@ const EnableMfa = () => {
         <p className="mb-6 text-sm text-[#0007149f] dark:text-gray-100 font-normal">
           Protect your account by adding an extra layer of security.
         </p>
-        <Button className="h-[35px] text-[#c40006d3] bg-red-100 shadow-none mr-1">
+        {/* <Button className="h-[35px] !text-[#c40006d3] !bg-red-100 shadow-none mr-1">
           Revoke Access
-        </Button>
+        </Button> */}
 
         <Dialog>
           <DialogTrigger asChild>

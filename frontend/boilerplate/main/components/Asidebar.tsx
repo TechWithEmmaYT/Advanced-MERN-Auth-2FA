@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Logo from "@/components/logo";
 
 const Asidebar = () => {
   const { open } = useSidebar();
@@ -63,15 +64,15 @@ const Asidebar = () => {
     <Sidebar collapsible="icon">
       <SidebarHeader className="!pt-0 dark:bg-background">
         <div className="flex h-[60px] items-center">
-          <Link
-            href="/home"
-            className="text-xl flex items-center tracking-[-0.16px] text-black dark:text-[#fcfdffef] font-bold mb-0"
-          >
-            <div className="size-[30px] rounded-lg  flex items-center border-2 dark:border-gray-200 justify-center  bg-gradient-to-br from-gray-500 to-black to-90% ">
-              <div className="font-bold text-gray-50 text-xl">S</div>
-            </div>
-            {open && <div className="hidden md:flex ml-2">Squeezy</div>}
-          </Link>
+          <Logo fontSize="xl" size="30px" url="/home" />
+          {open && (
+            <Link
+              href="/home"
+              className="hidden md:flex ml-2 text-xl tracking-[-0.16px] text-black dark:text-[#fcfdffef] font-bold mb-0"
+            >
+              Squeezy
+            </Link>
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent className="dark:bg-background">
