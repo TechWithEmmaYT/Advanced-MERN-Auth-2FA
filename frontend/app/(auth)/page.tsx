@@ -1,7 +1,8 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader } from "lucide-react";
 import { z } from "zod";
 import Link from "next/link";
 import {
@@ -15,8 +16,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/logo";
+import useLogin from "@/features/use-login";
+import { toast } from "@/hooks/use-toast";
 
 export default function Login() {
+  const router = useRouter();
+  const { mutate, isPending } = useLogin();
+
   const formSchema = z.object({
     email: z.string().trim().email().min(1, {
       message: "Email is required",
@@ -34,7 +40,26 @@ export default function Login() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {};
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    mutate(values, {
+      onSuccess: (data: any) => {
+        console.log(data, "data");
+        if (data.mfaRequired) {
+          router.replace(`/verify-mfa?email=${values.email}`);
+          return;
+        }
+        router.replace("/home");
+      },
+      onError: (error) => {
+        console.log(error);
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
 
   return (
     <main className="w-full min-h-[590px] h-auto max-w-full pt-10">
@@ -80,7 +105,11 @@ export default function Login() {
                       Password
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="••••••••••••" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="••••••••••••"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -96,9 +125,11 @@ export default function Login() {
               </Link>
             </div>
             <Button
+              disabled={isPending}
               className="w-full text-[15px] h-[40px] text-white font-semibold"
               type="submit"
             >
+              {isPending && <Loader className="animate-spin" />}
               Sign in
               <ArrowRight />
             </Button>
@@ -122,7 +153,7 @@ export default function Login() {
             </div>
           </form>
         </Form>
-        <Button variant="outline" className="w-full h-[40px]">
+        <Button variant="outline" type="button" className="w-full h-[40px]">
           Email magic link
         </Button>
         <p className="text-xs dark:text-slate- font-normal mt-7">

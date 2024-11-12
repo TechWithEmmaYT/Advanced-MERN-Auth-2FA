@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRight, Loader, MailCheckIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import {
@@ -14,22 +15,33 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MailCheckIcon } from "lucide-react";
+import useRegister from "@/features/use-register";
 import Logo from "@/components/logo";
+import { toast } from "@/hooks/use-toast";
 
 export default function SignUp() {
-  const [isSubmited] = useState(false);
-  const formSchema = z.object({
-    name: z.string().trim().min(1, {
-      message: "Name is required",
-    }),
-    email: z.string().trim().email().min(1, {
-      message: "Email is required",
-    }),
-    password: z.string().trim().min(1, {
-      message: "Password is required",
-    }),
-  });
+  const { mutate, isPending } = useRegister();
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const formSchema = z
+    .object({
+      name: z.string().trim().min(1, {
+        message: "Name is required",
+      }),
+      email: z.string().trim().email().min(1, {
+        message: "Email is required",
+      }),
+      password: z.string().trim().min(1, {
+        message: "Password is required",
+      }),
+      confirmPassword: z.string().trim().min(1, {
+        message: "Confirm Password is required",
+      }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Password does not match",
+      path: ["confirmPassword"],
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,22 +49,36 @@ export default function SignUp() {
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {};
-
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    mutate(values, {
+      onSuccess: () => {
+        setIsSubmitted(true);
+      },
+      onError: (error) => {
+        console.log(error);
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
   return (
     <>
       <main className="w-full min-h-[590px] h-auto max-w-full pt-10">
-        {!isSubmited ? (
+        {!isSubmitted ? (
           <div className="w-full p-5 rounded-md">
             <Logo />
 
             <h1 className="text-xl tracking-[-0.16px] dark:text-[#fcfdffef] font-bold mb-1.5 mt-8 text-center sm:text-left">
               Create a Squeezy account
             </h1>
-            <p className="mb-6 text-center sm:text-left text-base dark:text-[#f1f7feb5] font-normal">
+            <p className="mb-5 text-center sm:text-left text-base dark:text-[#f1f7feb5] font-normal">
               Already have an account?{" "}
               <Link className="text-primary" href="/">
                 Sign in
@@ -115,15 +141,34 @@ export default function SignUp() {
                     )}
                   />
                 </div>
+                <div className="mb-4">
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="dark:text-[#f1f7feb5] text-sm">
+                          Confirm Password
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="••••••••••••" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <Button
+                  disabled={isPending}
                   className="w-full text-[15px] h-[40px] !bg-blue-500 text-white font-semibold"
                   type="submit"
                 >
+                  {isPending && <Loader className="animate-spin" />}
                   Create account
                   <ArrowRight />
                 </Button>
 
-                <div className="mb-4 mt-4 flex items-center justify-center">
+                <div className="mb-3 mt-4 flex items-center justify-center">
                   <div
                     aria-hidden="true"
                     className="h-px w-full bg-[#eee] dark:bg-[#d6ebfd30]"
@@ -166,7 +211,7 @@ export default function SignUp() {
               Check your email
             </h2>
             <p className="mb-2 text-center text-sm text-muted-foreground dark:text-[#f1f7feb5] font-normal">
-              We just sent a verification link to natesiv517@edectus.com.
+              We just sent a verification link to {form.getValues().email}.
             </p>
             <Link href="/">
               <Button className="h-[40px]">

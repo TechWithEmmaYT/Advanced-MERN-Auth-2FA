@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Logo from "@/components/logo";
+import Link from "next/link";
 
 const VerifyMfa = () => {
   const FormSchema = z.object({
@@ -119,9 +120,11 @@ const VerifyMfa = () => {
           </Form>
         </div>
 
-        <Button variant="ghost" className="w-full text-[15px] mt-2 h-[40px]">
-          Return to sign in
-        </Button>
+        <Link href="/">
+          <Button variant="ghost" className="w-full text-[15px] mt-2 h-[40px]">
+            Return to sign in
+          </Button>
+        </Link>
       </div>
     </main>
   );
