@@ -58,9 +58,18 @@ class MfaController {
         .status(HTTPSTATUS.OK)
         .json({
           message: "Verified & login successfully",
-          mfaRequired: false,
           user,
         });
+    }
+  );
+
+  public revokeMFA = asyncHandler(
+    async (req: Request, res: Response): Promise<any> => {
+      const { userPreferences, message } = await this.mfaService.revokeMFA(req);
+      return res.status(HTTPSTATUS.OK).json({
+        message: message,
+        userPreferences: userPreferences,
+      });
     }
   );
 }

@@ -15,7 +15,10 @@ interface JwtPayload {
 
 const options: StrategyOptionsWithRequest = {
   jwtFromRequest: ExtractJwt.fromExtractors([
-    (req) => req.cookies.accessToken || null, // Extract accessToken from cookie
+    (req) => {
+      console.log(req.cookies, "req");
+      return req.cookies.accessToken || null;
+    },
   ]),
   secretOrKey: config.JWT.SECRET,
   audience: ["user"],

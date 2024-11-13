@@ -69,7 +69,7 @@ class AuthService {
     });
     //send verification email
     try {
-      const verificationUrl = `${config.APP_ORIGIN}/verify/email/${code._id}`;
+      const verificationUrl = `${config.APP_ORIGIN}/confirm-account?code=${code._id}`;
       await sendEmail({
         to: newUser.email,
         ...verifyEmailTemplate(verificationUrl),
@@ -163,6 +163,7 @@ class AuthService {
   }
 
   public async verifyEmail(code: string): Promise<any> {
+    console.log(code, "code");
     const validCode = await VerificationCodeModel.findOne({
       _id: code,
       type: VerificationEnum.EMAIL_VERIFICATION,
@@ -170,7 +171,7 @@ class AuthService {
     });
 
     if (!validCode) {
-      throw new NotFoundException("Invalid verification code");
+      throw new NotFoundException("Invalid or expired verification code");
     }
     const updatedUser = await UserModel.findByIdAndUpdate(
       validCode.userId,
@@ -244,57 +245,61 @@ class AuthService {
 
   // Forgot Password Reset Method
   public async forgotPassword(email: string): Promise<any> {
-    const user = await UserModel.findOne({
-      email: email,
-    });
+    try {
+      const user = await UserModel.findOne({
+        email: email,
+      });
 
-    if (!user) {
-      throw new NotFoundException("User not found");
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+
+      //check mail rate limit is 2 email per 3min
+      const timeAgo = tenMinutesAgo(); //threeMinutesAgo()
+      const maxAttempts = 2;
+      const count = await VerificationCodeModel.countDocuments({
+        userId: user.id,
+        type: VerificationEnum.PASSWORD_RESET,
+        createdAt: { $gt: timeAgo },
+      });
+
+      if (count >= maxAttempts) {
+        throw new HttpException(
+          "Too many request, try again later",
+          HTTPSTATUS.TOO_MANY_REQUESTS,
+          ErrorCode.AUTH_TOO_MANY_ATTEMPTS
+        );
+      }
+
+      const expiresAt = anHourFromNow();
+      const verifyCode = await VerificationCodeModel.create({
+        userId: user.id,
+        type: VerificationEnum.PASSWORD_RESET,
+        expiresAt,
+      });
+
+      //send verification email
+      const resetUrl = `${config.APP_ORIGIN}/reset-password?code=${
+        verifyCode._id
+      }&exp=${expiresAt.getTime()}`;
+
+      const { data, error } = await sendEmail({
+        to: user.email,
+        ...passwordResetTemplate(resetUrl),
+      });
+
+      if (!data?.id) {
+        throw new InternalServerException(`${error?.name} ${error?.message}`);
+      }
+
+      return {
+        url: resetUrl,
+        emailId: data.id,
+      };
+    } catch (err) {
+      console.log("Paawordreset error", err);
+      return {};
     }
-
-    //check mail rate limit is 2 email per 3min
-    const timeAgo = tenMinutesAgo(); //threeMinutesAgo()
-    const maxAttempts = 2;
-    console.log(timeAgo, "timeAgo");
-    const count = await VerificationCodeModel.countDocuments({
-      userId: user.id,
-      type: VerificationEnum.PASSWORD_RESET,
-      createdAt: { $gt: timeAgo },
-    });
-
-    if (count >= maxAttempts) {
-      throw new HttpException(
-        "Too many request, try again later",
-        HTTPSTATUS.TOO_MANY_REQUESTS,
-        ErrorCode.AUTH_TOO_MANY_ATTEMPTS
-      );
-    }
-
-    const expiresAt = anHourFromNow();
-    const verifyCode = await VerificationCodeModel.create({
-      userId: user.id,
-      type: VerificationEnum.PASSWORD_RESET,
-      expiresAt,
-    });
-
-    //send verification email
-    const resetUrl = `${config.APP_ORIGIN}/password/reset?code=${
-      verifyCode._id
-    }&exp=${expiresAt.getTime()}`;
-
-    const { data, error } = await sendEmail({
-      to: user.email,
-      ...passwordResetTemplate(resetUrl),
-    });
-
-    if (!data?.id) {
-      throw new InternalServerException(`${error?.name} ${error?.message}`);
-    }
-
-    return {
-      url: resetUrl,
-      emailId: data.id,
-    };
   }
 
   // Reset Password Method

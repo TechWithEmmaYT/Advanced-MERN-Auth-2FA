@@ -23,9 +23,16 @@ class MfaService {
       };
     }
 
-    const secret = speakeasy.generateSecret({ name: "Squeezy" });
+    let secretKey = user.userPreferences.twoFactorSecret;
+    if (!secretKey) {
+      const secret = speakeasy.generateSecret({ name: "Squeezy" });
+      secretKey = secret.base32;
+      user.userPreferences.twoFactorSecret = secretKey;
+      await user.save();
+    }
+
     const url = speakeasy.otpauthURL({
-      secret: secret.base32,
+      secret: secretKey,
       label: `${user.email}`,
       issuer: "squeezy.com",
       encoding: "base32",
@@ -34,7 +41,7 @@ class MfaService {
 
     return {
       message: "Scan the QR code or use the setup key.",
-      secret: secret.base32,
+      secret: secretKey,
       qrImageUrl,
     };
   }
@@ -68,7 +75,6 @@ class MfaService {
       throw new BadRequestException("Invalid MFA code. Please try again.");
     }
     user.userPreferences.enable2FA = true;
-    user.userPreferences.twoFactorSecret = secretKey;
     await user.save();
     return {
       message: "MFA setup completed successfully",
@@ -125,6 +131,33 @@ class MfaService {
       user,
       accessToken,
       refreshToken,
+    };
+  }
+
+  public async revokeMFA(req: Request) {
+    const user = req.user;
+    if (!user) {
+      throw new UnauthorizedException("User not authorized");
+    }
+
+    if (!user.userPreferences.enable2FA) {
+      return {
+        message: "MFA is not enabled",
+        userPreferences: {
+          enable2FA: user.userPreferences.enable2FA,
+        },
+      };
+    }
+
+    user.userPreferences.twoFactorSecret = undefined;
+    user.userPreferences.enable2FA = false;
+    await user.save();
+
+    return {
+      message: "MFA revoke successfully",
+      userPreferences: {
+        enable2FA: user.userPreferences.enable2FA,
+      },
     };
   }
 }

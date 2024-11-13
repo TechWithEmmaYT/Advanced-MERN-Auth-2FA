@@ -5,7 +5,7 @@ import {
   loginSchema,
   registerSchema,
   resetPasswordSchema,
-  verificationCodeSchema,
+  verificationEmailSchema,
 } from "../../common/validators/auth.validator";
 import {
   clearAuthenticationCookies,
@@ -95,7 +95,7 @@ class AuthController {
 
   public verifyEmail = asyncHandler(
     async (req: Request, res: Response): Promise<any> => {
-      const code = verificationCodeSchema.parse(req.params.code);
+      const { code } = verificationEmailSchema.parse(req.body);
       await this.authService.verifyEmail(code);
 
       return res.status(HTTPSTATUS.OK).json({
