@@ -1,7 +1,53 @@
-import Logo from "@/components/logo";
+"use client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/logo";
+import { toast } from "@/hooks/use-toast";
+import { verifyEmailMutationFn } from "@/lib/api";
 
-export default function ComfirmAccount() {
+export default function ConfirmAccount() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const code = params.get("code");
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: verifyEmailMutationFn,
+  });
+
+  const handleSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    if (!code) {
+      toast({
+        title: "Error",
+        description: "Confirmation token not found",
+        variant: "default",
+      });
+      return;
+    }
+    mutate(
+      { code },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "Account confirmed successfully",
+            variant: "destructive",
+          });
+          router.replace(`/home`);
+        },
+        onError: (error) => {
+          console.log(error);
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
   return (
     <main className="w-full min-h-[590px] h-full max-w-full flex items-center justify-center ">
       <div className="w-full h-full p-5 rounded-md">
@@ -16,8 +62,13 @@ export default function ComfirmAccount() {
         <p className="mb-6 text-center sm:text-left text-[15px] dark:text-[#f1f7feb5] font-normal">
           To confirm your account, please follow the button below.
         </p>
-        <form>
-          <Button className="w-full text-[15px] h-[40px] text-white font-semibold">
+        <form onSubmit={handleSubmit}>
+          <Button
+            disabled={isPending}
+            type="submit"
+            className="w-full text-[15px] h-[40px] text-white font-semibold"
+          >
+            {isPending && <Loader className="animate-spin" />}
             Confirm account
           </Button>
         </form>

@@ -1,9 +1,13 @@
 "use client";
 import React from "react";
 import { z } from "zod";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRight, Loader } from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
@@ -17,13 +21,22 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "@/hooks/use-toast";
 
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import Logo from "@/components/logo";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { verifyMFALoginMutationFn } from "@/lib/api";
 
 const VerifyMfa = () => {
+  const router = useRouter();
+
+  const params = useSearchParams();
+  const email = params.get("email");
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: verifyMFALoginMutationFn,
+  });
+
   const FormSchema = z.object({
     pin: z.string().min(6, {
       message: "Your one-time password must be 6 characters.",
@@ -37,7 +50,33 @@ const VerifyMfa = () => {
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {};
+  const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+    if (!email) {
+      router.replace("/");
+      return;
+    }
+    const data = {
+      code: values.pin,
+      email: email,
+    };
+    mutate(data, {
+      onSuccess: (response: any) => {
+        console.log(response, "data");
+        router.replace("/home");
+        toast({
+          title: "Success",
+          description: response.message,
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
 
   return (
     <main className="w-full min-h-[590px] h-full max-w-full flex items-center justify-center ">
@@ -112,7 +151,8 @@ const VerifyMfa = () => {
                   </FormItem>
                 )}
               />
-              <Button className="w-full h-[40px] mt-2">
+              <Button disabled={isPending} className="w-full h-[40px] mt-2">
+                {isPending && <Loader className="animate-spin" />}
                 Continue
                 <ArrowRight />
               </Button>

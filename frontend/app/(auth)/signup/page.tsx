@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { ArrowRight, Loader, MailCheckIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import Link from "next/link";
 import {
@@ -13,16 +13,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import useRegister from "@/features/use-register";
 import Logo from "@/components/logo";
 import { toast } from "@/hooks/use-toast";
+import { registerMutationFn } from "@/lib/api";
 
 export default function SignUp() {
-  const { mutate, isPending } = useRegister();
-
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: registerMutationFn,
+  });
+
   const formSchema = z
     .object({
       name: z.string().trim().min(1, {
@@ -134,7 +138,11 @@ export default function SignUp() {
                           Password
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder="••••••••••••" {...field} />
+                          <Input
+                            type="password"
+                            placeholder="••••••••••••"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -151,7 +159,11 @@ export default function SignUp() {
                           Confirm Password
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder="••••••••••••" {...field} />
+                          <Input
+                            type="password"
+                            placeholder="••••••••••••"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

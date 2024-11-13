@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { ArrowRight, Loader } from "lucide-react";
 import { z } from "zod";
@@ -16,12 +17,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/logo";
-import useLogin from "@/features/use-login";
 import { toast } from "@/hooks/use-toast";
+import { loginMutationFn } from "@/lib/api";
 
 export default function Login() {
   const router = useRouter();
-  const { mutate, isPending } = useLogin();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: loginMutationFn,
+  });
 
   const formSchema = z.object({
     email: z.string().trim().email().min(1, {
@@ -119,7 +123,7 @@ export default function Login() {
             <div className="mb-4 flex w-full items-center justify-end">
               <Link
                 className="text-sm dark:text-white"
-                href="/reset-password?email="
+                href={`/forgot-password?email=${form.getValues().email}`}
               >
                 Forgot your password?
               </Link>

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import React from "react";
-import EnableMfa from "../_components/EnableMfa";
-import Sessions from "../_components/Sessions";
+import EnableMfa from "../../_components/EnableMfa";
+import Sessions from "../../_components/Sessions";
 
 const Home = () => {
   return (
