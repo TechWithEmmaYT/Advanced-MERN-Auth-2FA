@@ -18,6 +18,7 @@ const app = express();
 const BASE_PATH = config.BASE_PATH;
 
 app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
@@ -33,7 +34,7 @@ app.get(
   `/`,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     res.status(HTTPSTATUS.OK).json({
-      message: "Hello Subscribers !!!",
+      message: "Hello Subscribers!!!!",
     });
   })
 );

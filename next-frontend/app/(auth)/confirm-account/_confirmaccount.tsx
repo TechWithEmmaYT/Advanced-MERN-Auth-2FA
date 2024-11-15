@@ -33,7 +33,6 @@ export default function ConfirmAccount() {
           toast({
             title: "Success",
             description: "Account confirmed successfully",
-            variant: "destructive",
           });
           router.replace(`/home`);
         },
