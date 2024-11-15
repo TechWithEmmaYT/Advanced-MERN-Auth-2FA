@@ -225,9 +225,9 @@ export default function SignUp() {
             <p className="mb-2 text-center text-sm text-muted-foreground dark:text-[#f1f7feb5] font-normal">
               We just sent a verification link to {form.getValues().email}.
             </p>
-            <Link href="/">
+            <Link href="/home">
               <Button className="h-[40px]">
-                Go to login
+                Go to home
                 <ArrowRight />
               </Button>
             </Link>
