@@ -49,6 +49,7 @@ export default function Login() {
       onSuccess: (response: any) => {
         if (response.data.mfaRequired) {
           router.replace(`/verify-mfa?email=${values.email}`);
+          return;
         }
         router.replace("/home");
       },
