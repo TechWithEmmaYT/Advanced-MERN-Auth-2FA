@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { z } from "zod";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
