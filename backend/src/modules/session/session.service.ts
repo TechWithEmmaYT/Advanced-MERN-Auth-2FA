@@ -27,6 +27,22 @@ class SessionService {
     };
   };
 
+  public async getSessionById(sessionId: string) {
+    const session = await SessionModel.findById(sessionId)
+      .populate("userId")
+      .select("-expiresAt");
+
+    if (!session) {
+      throw new NotFoundException("Session not found");
+    }
+
+    const { userId: user } = session;
+
+    return {
+      user,
+    };
+  }
+
   public deleteSession = async (sessionId: string, userId: string) => {
     const deletedSession = await SessionModel.findByIdAndDelete({
       _id: sessionId,

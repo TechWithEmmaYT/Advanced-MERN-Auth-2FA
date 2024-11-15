@@ -6,6 +6,8 @@ import {
   clearAuthenticationCookies,
   REFRESH_PATH,
 } from "../common/utils/cookies";
+import { UnauthorizedException } from "../common/utils/catch-errors";
+import { JsonWebTokenError } from "jsonwebtoken";
 
 const handleZodError = (res: Response, error: z.ZodError) => {
   const errors = error.issues?.map((err) => ({
@@ -48,6 +50,10 @@ export const errorHandler: ErrorRequestHandler = (
       message:
         "Server configuration error: Private key missing for JWT signing.",
     });
+  }
+
+  if (error instanceof JsonWebTokenError) {
+    throw new UnauthorizedException("Invalid Token!");
   }
 
   if (error instanceof AppError) {

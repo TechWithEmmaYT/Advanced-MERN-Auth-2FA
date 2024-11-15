@@ -163,7 +163,6 @@ class AuthService {
   }
 
   public async verifyEmail(code: string): Promise<any> {
-    console.log(code, "code");
     const validCode = await VerificationCodeModel.findOne({
       _id: code,
       type: VerificationEnum.EMAIL_VERIFICATION,

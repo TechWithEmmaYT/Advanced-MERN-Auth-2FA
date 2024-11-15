@@ -7,6 +7,7 @@ import {
 import { config } from "../../config/app.config";
 import UserService from "../../modules/user/user.service";
 import { UnauthorizedException } from "../utils/catch-errors";
+import { ErrorCode } from "../enums/error-code.enum";
 
 interface JwtPayload {
   userId: string;
@@ -16,8 +17,14 @@ interface JwtPayload {
 const options: StrategyOptionsWithRequest = {
   jwtFromRequest: ExtractJwt.fromExtractors([
     (req) => {
-      console.log(req.cookies, "req");
-      return req.cookies.accessToken || null;
+      const accessToken = req.cookies["accessToken"];
+      if (!accessToken) {
+        throw new UnauthorizedException(
+          "Unauthorized access token",
+          ErrorCode.AUTH_TOKEN_NOT_FOUND
+        );
+      }
+      return accessToken;
     },
   ]),
   secretOrKey: config.JWT.SECRET,
@@ -32,12 +39,10 @@ export const setupJwtStrategy = (passport: PassportStatic) => {
       try {
         const userService = new UserService();
         const user = await userService.findUserById(payload.userId);
-
         req.sessionId = payload.sessionId;
         return done(null, user);
       } catch (error) {
-        const exception = new UnauthorizedException("User not authorized");
-        return done(exception, false);
+        return done(null, false);
       }
     })
   );

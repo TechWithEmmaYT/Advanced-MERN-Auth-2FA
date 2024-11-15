@@ -3,6 +3,7 @@ import { Response, Request } from "express";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import { HTTPSTATUS } from "../../config/http.config";
 import SessionService from "./session.service";
+import { NotFoundException } from "../../common/utils/catch-errors";
 
 class SessionController {
   private sessionService: SessionService;
@@ -27,6 +28,23 @@ class SessionController {
       return res.status(HTTPSTATUS.OK).json({
         message: "Retrieved all session successfully",
         sessions: modifySessions,
+      });
+    }
+  );
+
+  public getSession = asyncHandler(
+    async (req: Request, res: Response): Promise<any> => {
+      const sessionId = req?.sessionId;
+
+      if (!sessionId) {
+        throw new NotFoundException("Session ID not found. Please log in.");
+      }
+
+      const { user } = await this.sessionService.getSessionById(sessionId);
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Session retrieved successfully",
+        user,
       });
     }
   );

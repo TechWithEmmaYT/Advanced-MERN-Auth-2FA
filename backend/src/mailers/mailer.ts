@@ -9,10 +9,11 @@ type Params = {
   from?: string;
 };
 
-const mailer_sender =
+const mailer_sender = `no-reply <${
   config.NODE_ENV === "development"
-    ? "no-reply <onboarding@resend.dev>"
-    : config.MAILER_SENDER;
+    ? "onboarding@resend.dev"
+    : config.MAILER_SENDER
+}>`;
 
 const mailer_receiver =
   config.NODE_ENV === "development" ? "delivered@resend.dev" : "";
